@@ -10,6 +10,7 @@ interface ProviderProps {
 }
 
 const Provider = ({ provider, accessCode }: ProviderProps) => {
+  const SERVER_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const GOOGLE_CLIENT_SECRET = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET;
   const GOOGLE_REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
@@ -18,6 +19,8 @@ const Provider = ({ provider, accessCode }: ProviderProps) => {
   const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
   const GITHUB_CLIENT_SECRET = process.env.NEXT_PUBLIC_GITHUB_CLIENT_SECRET;
 
+  const REQUEST_URL = `${SERVER_BASE_URL}/api/users/${provider}`;
+
   const oauthGoogle = useCallback(async () => {
     try {
       const {
@@ -25,7 +28,12 @@ const Provider = ({ provider, accessCode }: ProviderProps) => {
       } = await axios.post(
         `https://oauth2.googleapis.com/token?code=${accessCode}&client_id=${GOOGLE_CLIENT_ID}&client_secret=${GOOGLE_CLIENT_SECRET}&redirect_uri=${GOOGLE_REDIRECT_URI}&grant_type=authorization_code`
       );
-      console.log("googleAccessToken", access_token);
+
+      const result = await axios.post(REQUEST_URL, {
+        access_token,
+      });
+
+      console.log("google oauth result ===> ", result);
     } catch (error) {
       console.log(error);
     }
@@ -38,7 +46,12 @@ const Provider = ({ provider, accessCode }: ProviderProps) => {
       } = await axios.post(
         `https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id=${KAKAO_API_KEY}&redirect_uri=${KAKAO_REDIRECT_URI}&code=${accessCode}`
       );
-      console.log("kakaoAccessToken", access_token);
+
+      const result = await axios.post(REQUEST_URL, {
+        access_token,
+      });
+
+      console.log("kakao oauth result ===> ", result);
     } catch (error) {
       console.log(error);
     }
@@ -50,6 +63,7 @@ const Provider = ({ provider, accessCode }: ProviderProps) => {
         `https://github.com/login/oauth/access_token?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}&code=${accessCode}`
       );
       console.log("oauthGithub", data);
+      // TODO github https 적용 후 연동
     } catch (error) {
       console.log(error);
     }
